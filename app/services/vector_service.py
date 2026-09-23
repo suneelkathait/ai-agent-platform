@@ -10,6 +10,8 @@ collection = client.get_or_create_collection(
 
 def add_chunks(
   document_id: str,
+  filename: str,
+  content_type: str | None,
   chunks: list[str],
   embeddings: list[list[float]]
 ):
@@ -21,6 +23,8 @@ def add_chunks(
   metadatas = [
     {
       "document_id": document_id,
+      "filename": filename,
+      "content_type": content_type or "",
       "chunk_index": index
     }
     for index in range(len(chunks))
@@ -37,11 +41,17 @@ def add_chunks(
 
 def search_chunks(
   query_embedding: list[float],
-  top_k: int = 5
+  top_k: int = 5,
+  document_id: str | None = None
 ):
-  results = collection.query(
-    query_embeddings=[query_embedding],
-    n_results=top_k
-  )
+  query_kwargs = {
+    "query_embeddings": [query_embedding],
+    "n_results": top_k
+  }
 
-  return results
+  if document_id:
+    query_kwargs["where"] = {
+      "document_id": document_id
+    }
+
+  return collection.query(**query_kwargs)

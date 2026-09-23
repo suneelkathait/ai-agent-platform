@@ -2,6 +2,7 @@ from uuid import uuid4
 from fastapi import APIRouter, File, UploadFile
 
 from app.core.response import success_response
+from app.schemas.document import DocumentResponse
 from app.services.document_service import extract_document_text
 from app.core.exceptions import AppException
 from app.services.chunk_service import chunk_text
@@ -13,7 +14,7 @@ router = APIRouter(
   tags=["Documents"]
 )
 
-@router.post("/upload")
+@router.post("/upload", response_model=DocumentResponse)
 async def upload_document(file: UploadFile = File(...)):
   if not file.filename:
     raise AppException(
@@ -59,6 +60,8 @@ async def upload_document(file: UploadFile = File(...)):
     document_id = str(uuid4())
     add_chunks(
       document_id=document_id,
+      filename=file.filename,
+      content_type=file.content_type,
       chunks=chunks,
       embeddings=embeddings
     )

@@ -13,6 +13,7 @@ router = APIRouter(
 class ChatRequest(BaseModel):
   question: str
   top_k: int = 5
+  document_id: str | None = None
 
 
 @router.post("")
@@ -24,10 +25,24 @@ async def chat(request: ChatRequest):
 
   results = search_chunks(
     query_embedding=query_embedding,
-    top_k=request.top_k
+    top_k=request.top_k,
+    document_id=request.document_id
   )
 
+  sources = []
+
   documents = results.get("documents", [[]])[0]
+  metadatas = results.get("metadatas", [[]])[0]
+  distances = results.get("distances", [[]])[0]
+  ids = results.get("ids", [[]])[0]
+
+  for index, document in enumerate(documents):
+    sources.append({
+      "chunk_id": ids[index],
+      "text": document,
+      "metadata": metadatas[index],
+      "distance": distances[index]
+    })
 
   context = "\n\n".join(documents)
 
@@ -39,5 +54,5 @@ async def chat(request: ChatRequest):
   return {
     "question": request.question,
     "answer": answer,
-    "sources": documents
+    "sources": sources
   }
