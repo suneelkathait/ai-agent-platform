@@ -1,6 +1,7 @@
 from uuid import uuid4
 from fastapi import APIRouter, File, UploadFile
 
+from app.core.response import success_response
 from app.services.document_service import extract_document_text
 from app.core.exceptions import AppException
 from app.services.chunk_service import chunk_text
@@ -62,15 +63,18 @@ async def upload_document(file: UploadFile = File(...)):
       embeddings=embeddings
     )
         
-    return {
-      "document_id": document_id,
-      "filename": file.filename,
-      "content_type": file.content_type,
-      "size": len(file_content),
-      "chunk_count": len(chunks),
-      "embedding_dimensions": len(embeddings[0]) if embeddings else 0,
-      "status": "processed"
-    }
+    return success_response(
+      message="Document processed successfully",
+      data={
+        "document_id": document_id,
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": len(file_content),
+        "chunk_count": len(chunks),
+        "embedding_dimensions": len(embeddings[0]) if embeddings else 0,
+        "status": "processed"
+      }
+    )
 
   except Exception as error:
     raise AppException(

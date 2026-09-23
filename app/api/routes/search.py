@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.core.response import success_response
 from app.services.embedding_service import generate_embedding
 from app.services.vector_service import search_chunks
 
@@ -25,4 +26,7 @@ async def search_documents(request: SearchRequest):
     top_k=request.top_k
   )
 
-  return results
+  return success_response(
+    message="Search results fetched successfully",
+    data=results,
+  )

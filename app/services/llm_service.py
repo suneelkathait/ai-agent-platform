@@ -6,6 +6,7 @@ from google.genai import errors
 
 from app.core.config import settings
 from app.core.exceptions import AppException
+from app.llm.client2 import generate_AI_answer
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,7 @@ def generate_answer(
 
   for attempt in range(max_retries):
     try:
-      response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
-        contents=prompt
-      )
-
+      response = generate_AI_answer(prompt)
       return response.text
 
     except errors.APIError as e:
