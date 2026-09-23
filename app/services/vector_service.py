@@ -42,7 +42,8 @@ def add_chunks(
 def search_chunks(
   query_embedding: list[float],
   top_k: int = 5,
-  document_id: str | None = None
+  document_id: str | None = None,
+  max_distance: float = 0.50
 ):
   query_kwargs = {
     "query_embeddings": [query_embedding],
@@ -54,4 +55,22 @@ def search_chunks(
       "document_id": document_id
     }
 
-  return collection.query(**query_kwargs)
+  results = collection.query(**query_kwargs)
+
+  documents = results.get("documents", [[]])[0]
+  metadatas = results.get("metadatas", [[]])[0]
+  distances = results.get("distances", [[]])[0]
+  ids = results.get("ids", [[]])[0]
+
+  filtered_results = []
+
+  for index, distance in enumerate(distances):
+    if distance <= max_distance:
+      filtered_results.append({
+        "id": ids[index],
+        "document": documents[index],
+        "metadata": metadatas[index],
+        "distance": distance
+      })
+
+  return filtered_results

@@ -20,14 +20,20 @@ def generate_answer(
 ) -> str:
 
   prompt = f"""
-  You are a helpful AI assistant.
+  You are a document question-answering assistant.
 
-  Answer the user's question using only the information
-  provided in the context.
+  Your job is to answer the user's question using ONLY
+  the information provided in the context.
 
-  If the answer cannot be found in the context,
-  say that the information is not available in the
-  provided documents.
+  Rules:
+
+  1. Do not use outside knowledge.
+  2. Do not invent facts.
+  3. If the context does not contain enough information,
+    clearly say that the answer is not available in the
+    provided documents.
+  4. Keep the answer concise and directly related to
+    the question.
 
   Context:
   {context}
