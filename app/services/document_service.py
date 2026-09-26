@@ -1,4 +1,5 @@
 from io import BytesIO # BytesIO allows us to treat bytes in memory like a file. We don't necessarily need to save the PDF to disk first.
+from datetime import datetime, timezone
 
 from pypdf import PdfReader
 from app.db.mongo import documents_collection
@@ -34,6 +35,24 @@ def extract_document_text(filename: str, file_content: bytes) -> str:
     return extract_text_from_pdf(file_content)
 
   raise ValueError("Unsupported file type")
+
+def update_document_status(
+  document_id: str,
+  status: str,
+  **extra_fields
+):
+  documents_collection.update_one(
+    {
+      "document_id": document_id
+    },
+    {
+      "$set": {
+        "status": status,
+        "updated_at": datetime.now(timezone.utc),
+        **extra_fields
+      }
+    }
+  )
 
 def get_document(document_id: str):
   return documents_collection.find_one(

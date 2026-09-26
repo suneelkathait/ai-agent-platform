@@ -50,7 +50,7 @@ def search_chunks(
   query_embedding: list[float],
   top_k: int = 5,
   document_id: str | None = None,
-  max_distance: float = 1
+  max_distance: float = 0.50
 ):
   query_kwargs = {
     "query_embeddings": [query_embedding],

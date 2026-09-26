@@ -1,10 +1,11 @@
 from uuid import uuid4
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, UploadFile
 
+from app.db.mongo import documents_collection
 from app.core.response import success_response
 from app.schemas.document import DocumentResponse
+from app.services.document_processing_service import process_document
 from app.services.document_service import (
-  extract_document_text,
   get_document,
   get_all_documents,
   delete_document
@@ -20,7 +21,7 @@ router = APIRouter(
 )
 
 @router.post("/upload", response_model=DocumentResponse)
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
   if not file.filename:
     raise AppException(
       error_code="REQUIRED_FIELDS",
@@ -49,38 +50,53 @@ async def upload_document(file: UploadFile = File(...)):
     )
 
   try:
-    extracted_text = extract_document_text(
-      file.filename,
-      file_content
-    )
-
-    chunks = chunk_text(
-      extracted_text,
-      chunk_size=100,
-      chunk_overlap=20
-    )
-
-    embeddings = generate_embeddings(chunks)
-
+    # -----------------------------------
+    # 4. Create document ID
+    # -----------------------------------
     document_id = str(uuid4())
-    add_chunks(
+
+    # -----------------------------------
+    # 5. Create MongoDB document
+    # -----------------------------------
+    document = {
+      "document_id": document_id,
+      "filename": file.filename,
+      "content_type": file.content_type,
+      "size": len(file_content),
+      "extracted_text": None,
+      "chunk_count": 0,
+      "embedding_dimensions": 0,
+      "status": "uploaded",
+      "error": None,
+    }
+
+    documents_collection.insert_one(document)
+
+    # -----------------------------------
+    # 6. Start background processing
+    # -----------------------------------
+    background_tasks.add_task(
+      process_document,
       document_id=document_id,
       filename=file.filename,
       content_type=file.content_type,
-      chunks=chunks,
-      embeddings=embeddings
+      file_content=file_content,
+      file_size=len(file_content),
     )
-        
+
+    # -----------------------------------
+    # 7. Return immediately
+    # -----------------------------------        
     return success_response(
-      message="Document processed successfully",
+      message="Document uploaded and processing started",
       data={
         "document_id": document_id,
         "filename": file.filename,
         "content_type": file.content_type,
         "size": len(file_content),
-        "chunk_count": len(chunks),
-        "embedding_dimensions": len(embeddings[0]) if embeddings else 0,
-        "status": "processed"
+        "chunk_count": 0,
+        "embedding_dimensions": 0,
+        "status": "processing"
       }
     )
 
