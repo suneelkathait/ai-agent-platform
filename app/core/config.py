@@ -6,7 +6,10 @@ class Settings(BaseSettings):
   ENVIRONMENT: str = "development"
 
   GEMINI_API_KEY: str
-  MONGODB_URL:  str
+
+  MONGODB_URL: str
+  DATABASE_NAME: str
+
   REDIS_URL: str
   VECTOR_DB_URL: str
 
@@ -15,6 +18,5 @@ class Settings(BaseSettings):
     env_file_encoding="utf-8",
     extra="ignore",
   )
-
 
 settings = Settings()

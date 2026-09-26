@@ -3,7 +3,12 @@ from fastapi import APIRouter, File, UploadFile
 
 from app.core.response import success_response
 from app.schemas.document import DocumentResponse
-from app.services.document_service import extract_document_text
+from app.services.document_service import (
+  extract_document_text,
+  get_document,
+  get_all_documents,
+  delete_document
+)
 from app.core.exceptions import AppException
 from app.services.chunk_service import chunk_text
 from app.services.embedding_service import generate_embeddings
@@ -29,10 +34,10 @@ async def upload_document(file: UploadFile = File(...)):
 
   if extension not in allowed_extensions:
     raise AppException(
-        error_code="UNSUPPORTED_FILE",
-        message="Only PDF and TXT files are supported",
-        status_code=400,
-      )
+      error_code="UNSUPPORTED_FILE",
+      message="Only PDF and TXT files are supported",
+      status_code=400,
+    )
 
   file_content = await file.read()
 
@@ -85,3 +90,43 @@ async def upload_document(file: UploadFile = File(...)):
       message=f"Document processing failed: {str(error)}",
       status_code=500,
     )
+
+@router.get("")
+async def list_documents():
+  return success_response(
+    message="Documents retrieved successfully",
+    data = get_all_documents()
+  )
+
+@router.get("/{document_id}")
+async def get_document_by_id(document_id: str):
+
+  document = get_document(document_id)
+
+  if not document:
+    raise AppException(
+      error_code="DOCUMENT_NOT_FOUND",
+      message="Document not found",
+      status_code=404,
+    )
+
+  return document
+
+@router.delete("/{document_id}")
+async def remove_document(document_id: str):
+
+  document = delete_document(document_id)
+
+  if not document:
+    raise AppException(
+        error_code="DOCUMENT_NOT_FOUND",
+        message="Document not found for deletion: {document_id}",
+        status_code=404,
+      )
+
+  return success_response(
+    message="Document deleted successfully",
+    data={
+      "document_id": document_id
+    }
+  )

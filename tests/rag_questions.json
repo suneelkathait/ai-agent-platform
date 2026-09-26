@@ -1,0 +1,17 @@
+[
+  {
+    "question": "How many annual leave days do employees receive?",
+    "expected_keyword": "20",
+    "document_id": "employee-policy"
+  },
+  {
+    "question": "How many days can employees work remotely?",
+    "expected_keyword": "3",
+    "document_id": "employee-policy"
+  },
+  {
+    "question": "What happens if remote work is required?",
+    "expected_keyword": "manager",
+    "document_id": "employee-policy"
+  }
+]

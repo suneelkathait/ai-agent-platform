@@ -8,6 +8,13 @@ collection = client.get_or_create_collection(
   name="documents"
 )
 
+def delete_document_chunks(document_id: str):
+  collection.delete(
+    where={
+      "document_id": document_id
+    }
+  )
+
 def add_chunks(
   document_id: str,
   filename: str,
@@ -43,7 +50,7 @@ def search_chunks(
   query_embedding: list[float],
   top_k: int = 5,
   document_id: str | None = None,
-  max_distance: float = 0.50
+  max_distance: float = 1
 ):
   query_kwargs = {
     "query_embeddings": [query_embedding],
