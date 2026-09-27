@@ -126,7 +126,10 @@ async def get_document_by_id(document_id: str):
       status_code=404,
     )
 
-  return document
+  return success_response(
+    message="Document retrieved successfully",
+    data=document    
+  )
 
 @router.delete("/{document_id}")
 async def remove_document(document_id: str):
@@ -135,10 +138,10 @@ async def remove_document(document_id: str):
 
   if not document:
     raise AppException(
-        error_code="DOCUMENT_NOT_FOUND",
-        message="Document not found for deletion: {document_id}",
-        status_code=404,
-      )
+      error_code="DOCUMENT_NOT_FOUND",
+      message="Document not found for deletion: {document_id}",
+      status_code=404,
+    )
 
   return success_response(
     message="Document deleted successfully",

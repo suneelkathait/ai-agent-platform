@@ -15,7 +15,7 @@ class ChatRequest(BaseModel):
   question: str
   top_k: int = 5
   document_id: str | None = None
-  max_distance: float = 0.50
+  max_distance: float = 1
 
 @router.post("")
 async def chat(request: ChatRequest):
