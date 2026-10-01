@@ -9,6 +9,12 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: mypassword
     volumes:
       - mongodb_data:/data/db
+    
+  redis:
+    image: redis:latest
+    container_name: ai-agent-redis
+    ports:
+      - "6379:6379"
 
 volumes:
   mongodb_data:

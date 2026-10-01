@@ -1,10 +1,15 @@
 from uuid import uuid4
-from fastapi import APIRouter, BackgroundTasks, File, UploadFile
+from fastapi import (
+  APIRouter, 
+  # BackgroundTasks, 
+  File,
+  UploadFile
+)
 
 from app.db.mongo import documents_collection
 from app.core.response import success_response
 from app.schemas.document import DocumentResponse
-from app.services.document_processing_service import process_document
+# from app.services.document_processing_service import process_document
 from app.services.document_service import (
   get_document,
   get_all_documents,
@@ -14,6 +19,7 @@ from app.core.exceptions import AppException
 from app.services.chunk_service import chunk_text
 from app.services.embedding_service import generate_embeddings
 from app.services.vector_service import add_chunks
+from app.worker.tasks import process_document_task
 
 router = APIRouter(
   prefix="/documents",
@@ -21,7 +27,10 @@ router = APIRouter(
 )
 
 @router.post("/upload", response_model=DocumentResponse)
-async def upload_document(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def upload_document(
+  # background_tasks: BackgroundTasks, 
+  file: UploadFile = File(...)
+):
   if not file.filename:
     raise AppException(
       error_code="REQUIRED_FIELDS",
@@ -75,8 +84,15 @@ async def upload_document(background_tasks: BackgroundTasks, file: UploadFile = 
     # -----------------------------------
     # 6. Start background processing
     # -----------------------------------
-    background_tasks.add_task(
-      process_document,
+    # background_tasks.add_task(
+    #   process_document,
+    #   document_id=document_id,
+    #   filename=file.filename,
+    #   content_type=file.content_type,
+    #   file_content=file_content,
+    #   file_size=len(file_content),
+    # )
+    process_document_task.delay(
       document_id=document_id,
       filename=file.filename,
       content_type=file.content_type,
